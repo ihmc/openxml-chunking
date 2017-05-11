@@ -16,5 +16,32 @@ The 'us.ihmc.chunking' package contains the 'Fragmenter' and 'Reassembler' inter
 ### JDK
 The 'us.ihmc.chunking.server' package includes the 'OoxmlFragmenter' and 'OoxmlReassembler' implemetation of the 'Fragmenter' and 'Reassembler' interfaces specific to Office Open XML documents. This implementation depends upon the 'javax.imageio' and 'java.awt.image' packages that are _only_ currently available on the JDK and _not_ the Android platform.
 
+**Example**
+```
+String ooxmlPath = "some/path/document.pptx";   // path to the document to fragment
+byte chunkCount = 4;                            // how many total chunks to fragment into 2, 4, 8, 16
+byte chunkCompressionPercent = 100;             // 0-100, 0=smallest size, 100=highest quality
+byte[] originalFileData = Files.readAllBytes(ooxmlPath);
+final String mimeType = FileUtils.getMimeTypeForFile(ooxmlPath);
+
+Fragmenter fragmenter = new OoxmlFragmenter();
+Collection<ChunkWrapper> chunks = fragmenter.fragment(originalFileData, mimeType, chunkCount, chunkCompressionPercent);
+...
+Collection<AnnotationWrapper> annotations = null;  // not supported yet, future enhancement
+Reassembler reassembler = new OoxmlReassembler();
+byte[] reassembledFileData = reassembler.reassemble(chunks, annotations, mimeType, chunkCount, chunkCompressionPercent);
+```
 ### Android SDK
 The 'us.ihmc.chunking.android' package includes the 'OoxmlReassembler' implemetation specific to Office Open XML documents. This implementation depends upon the 'android.graphics' package is _only_ available on the Android platform and _not_ the JDK.
+
+**Example**
+```
+ArrayList<ChunkWrapper> chunkList = new ArrayList<ChunkWrapper>();
+...
+byte[] chunkFileData = OoxmlChunkUtils.readFileContents(ooxmlChunkPath, appContext);
+ChunkWrapper chunkWrapper = new ChunkWrapper(chunkFileData, chunkId, totalChunkCount, FileUtils.getMimeTypeForFile(ooxmlFilePathStr));
+chunkList.add(chunkWrapper);
+...
+Reassembler reassembler = new OoxmlReassembler();
+byte[] reassembledFileData = reassembler.reassemble(chunkList, annotations, FileUtils.getMimeTypeForFile(firstChunkFilePathStr), totalChunkCount, chunkCompressionPercent);
+```
